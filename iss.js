@@ -1,7 +1,8 @@
-// Purpose of file - contains most of the logic for fetching the data from each API endpoint.
-  // fetchMyIP: uses ipfy's API to get the public ip address of your own computer 
-  // fetchCoordsByIP: uses ipwho's API to get the latitude/longitude coordinates of an ip address
-  // fetchISSFlyOverTimes: uses iss-flyover's API to get ISS fly over times of a given latitude/longitude
+/* Purpose of file - contains most of the logic for fetching the data from each API endpoint.
+  * fetchMyIP: uses ipfy's API to get the public ip address of your own computer 
+  * fetchCoordsByIP: uses ipwho's API to get the latitude/longitude coordinates of an ip address
+  * fetchISSFlyOverTimes: uses iss-flyover's API to get ISS fly over times of a given latitude/longitude
+*/
 
 
 const request = require('request');
@@ -40,8 +41,8 @@ const fetchCoordsByIP = function (ip, callback) {
       return;
     }
 
-    coordinates = { 'latitude': `${parsedBody.latitude}`, 'longitude': `${parsedBody.longitude}` }
-    callback(null, coordinates); // Prints the coordinates using the ip, if there is no error
+    coordinates = { 'latitude': `${parsedBody.latitude}`, 'longitude': `${parsedBody.longitude}` };
+    callback(null, coordinates); 
   });
 };
 
@@ -63,12 +64,45 @@ const fetchISSFlyOverTimes = function(object, callback) {
 
     const parsedBody = JSON.parse(body);
     flyOverTimes = parsedBody.response;
-    callback(null, flyOverTimes); // Prints the coordinates using the ip, if there is no error
+    callback(null, flyOverTimes); 
 
   });
 };
 
 
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
+/*
+ * Chains multiple API requests to determine ISS fly overs for user's current location.
+ * Input:
+ *   - A callback with an error or results
+ * 
+ * Returns (via Callback):
+ *   - An error (otherwise NULL)
+ *   - The fly-over times as an array (otherwise NULL):
+ *     
+ */ 
+
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
+
+    fetchCoordsByIP(ip, (error, coords) => {
+      if (error) {
+        return callback(error, null);
+      }
+
+      fetchISSFlyOverTimes(coords, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null);
+        }
+
+        callback(null, nextPasses);
+      });
+    });
+  });
+};
+
+module.exports = { nextISSTimesForMyLocation };
 
 
