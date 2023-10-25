@@ -1,6 +1,6 @@
 // Purpose of file: to require and run our main function, and contains the callback
 
-const { nextISSTimesForMyLocation } = require('./iss');
+const { nextISSTimesForLocation } = require('./iss');
 
 // fetchMyIP( /*callback*/ (error, ip) => {
 //   if (error) {
@@ -36,10 +36,12 @@ const printPassTimes = function(passTimes) {
   }
 };
 
-nextISSTimesForMyLocation((error, passTimes) => {
+nextISSTimesForLocation((error, passTimes) => {
   if (error) {
     return console.log("It didn't work!", error);
   }
   // success, print out the deets!
-  printPassTimes(passTimes);
+  // printPassTimes(passTimes);
 });
+
+module.exports = { printPassTimes };
